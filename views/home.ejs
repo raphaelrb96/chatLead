@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+        <title>ChatLead</title>
+
+    </head>
+    <body>
+        <h1>ChatBot Whatsapp</h1>
+        <h2>Leia o QRcode</h2>
+        <p>Em caso de QRcode invalido, atualize a pagina</p>
+        <br/>
+        <img class="qr" id="img1">
+
+        <form id="form" class="formulario">
+            <h4>Insira uma Mensagem para Envio em Massa</h4>
+            <textarea type="text" id="txtInput"></textarea>
+            <br/>
+            <input onclick="enviarMsg()" type="button" value="Enviar" />
+        </form>
+
+        <script>
+            const socket = io('http://localhost:3000');
+            socket.on("connection");
+            
+            socket.on("message", (data) => {
+                document.querySelector('h1').innerHTML = data;
+                if(data == 'CONNECTED') {
+                    document.querySelector('h2').style.display = 'none';
+                    document.querySelector('p').style.display = 'none';
+                    document.getElementById('img1').style.display = 'none';
+                    //socket.disconnect(true);
+
+                }
+            });
+            
+            socket.on("status", (data) => {
+
+                
+
+                document.querySelector('h1').innerHTML = data;
+                if(data == 'qrReadSuccessng QRCode status...' || data == 'waitForLogin' || data == 'initWhatsapp') {
+                    document.querySelector('h1').innerHTML = 'Checando Login...'
+                    document.querySelector('h2').style.display = 'none';
+                    document.querySelector('p').style.display = 'none';
+                    document.getElementById('img1').style.display = 'none';
+                    //socket.disconnect(true);
+
+                } else if(data == 'successChat' || data == 'chatsAvailable') {
+                    document.querySelector('h1').innerHTML = 'Dashboard';
+                    document.querySelector('h2').innerHTML = 'Whatsapp Conectado';
+                    document.querySelector('h2').style.display = 'block';
+
+                    document.querySelector('p').style.display = 'none';
+                    document.getElementById('img1').style.display = 'none';
+
+                    const form = document.getElementById('form');
+                    form.style.display = 'block';
+
+                } else {
+                    
+                    document.querySelector('h2').style.display = 'block';
+                    document.querySelector('p').style.display = 'block';
+                    document.getElementById('img1').style.display = 'block';
+                }
+            });
+            socket.on("ready", (data) => {
+                //console.log(JSON.stringify(data))
+                //document.getElementById('img1').src = data;
+            });
+
+            socket.on("image", (data) => {
+                console.log('image' + JSON.stringify(data))
+                document.getElementById('img1').src = data;
+            })
+            socket.emit("message");
+
+            socket.on("send", () => {
+
+            });
+
+            function enviarMsg () {
+                const txtInput = document.getElementById('txtInput').value;
+                console.log(txtInput);
+                socket.emit("send", txtInput);
+            };
+            
+        </script>
+    </body>
+    <style>
+        .qr{
+            margin-top: 20px;
+        }
+
+        .formulario {
+            display: none;
+        }
+
+        #form {
+            display: none;
+        }
+
+        .txtInput {
+            display: block;
+        }
+    </style>
+</html>
